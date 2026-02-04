@@ -1,9 +1,7 @@
 package org.acme.order.resource;
 
-import java.util.ArrayList;
-
-import org.acme.support.AppError.ErrorInfo;
 import org.acme.support.AppError.ErrorResponse;
+import org.acme.support.AppError.ValidationError;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -28,14 +26,10 @@ public final class ConstraintViolationExceptionMapper
 
   @Override
   public Response toResponse(ConstraintViolationException e) {
-    var errors = new ArrayList<ErrorInfo>();
-    e.getConstraintViolations()
-        .forEach(
-            v -> {
-              String field = v.getPropertyPath().toString();
-              String message = v.getMessage();
-              errors.add(ErrorInfo.of(field, message));
-            });
+    var errors =
+        e.getConstraintViolations().stream()
+            .map(v -> ValidationError.from(v.getPropertyPath().toString(), v.getMessage()))
+            .toList();
     var response = ErrorResponse.fromErrors("Validation failed", errors);
     var json = buildJson(response);
     return Response.status(Response.Status.BAD_REQUEST)
