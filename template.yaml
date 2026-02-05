@@ -1,0 +1,70 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Order API using Lambda with API Gateway
+
+Parameters:
+  Stage:
+   Type: String
+   Default: prod
+   Description: StageName of API Gateway
+
+Globals:
+  Function:
+    Handler: io.quarkus.amazon.lambda.runtime.QuarkusStreamHandler::handleRequest
+    CodeUri: build/function.zip
+    Runtime: java21
+    MemorySize: 256
+    Timeout: 15
+  Api:
+    EndpointConfiguration: REGIONAL
+    BinaryMediaTypes:
+      - "*/*"
+
+Resources:
+  OrderApiGateway:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: !Ref Stage
+      Name: Order Backend API
+
+  PostOrderHandler:
+    Type: AWS::Serverless::Function
+    Properties:
+      Environment:
+        Variables:
+          QUARKUS_LAMBDA_HANDLER: createOrder
+          ORDER_TABLE_NAME: !Ref OrderTable
+      MemorySize: 256
+      Timeout: 15
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - DynamoDBCrudPolicy:
+            TableName: !Ref OrderTable
+      Events:
+        GetResource:
+          Type: Api
+          Properties:
+            RestApiId: !Ref OrderApiGateway
+            Path: /{proxy+}
+            Method: ANY
+
+  OrderTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub "${AWS::StackName}-Order"
+#      TableName: Order
+      DeletionProtectionEnabled: true
+      AttributeDefinitions:
+        - AttributeName: orderId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: orderId
+          KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
+
+Outputs:
+  OrderBackendApi:
+    Description: API Gateway endpoint URL for application
+    Value: !Sub 'https://${OrderApiGateway}.execute-api.${AWS::Region}.amazonaws.com/prod/'
+    Export:
+      Name: OrderBackendApi

@@ -31,9 +31,9 @@ public final class ConstraintViolationExceptionMapper
             .map(v -> ValidationError.from(v.getPropertyPath().toString(), v.getMessage()))
             .toList();
     var response = ErrorResponse.fromErrors("Validation failed", errors);
-    var json = buildJson(response);
+    var jsonObj = buildJson(response);
     return Response.status(Response.Status.BAD_REQUEST)
-        .entity(json)
+        .entity(jsonObj)
         .type(MediaType.APPLICATION_JSON)
         .build();
   }

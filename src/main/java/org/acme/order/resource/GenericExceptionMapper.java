@@ -17,9 +17,8 @@ public class GenericExceptionMapper implements ExceptionMapper<Throwable> {
   @Override
   public Response toResponse(Throwable e) {
     LOG.error("", e);
-    ErrorResponse err = ErrorResponse.fromMessage(e.getMessage());
     return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-        .entity(err)
+        .entity(ErrorResponse.fromMessage(e.getMessage()))
         .type(MediaType.APPLICATION_JSON)
         .build();
   }
