@@ -29,6 +29,6 @@ public class OrderResourceTest {
         .post("/order")
         .then()
         .statusCode(200)
-        .body("orderId", notNullValue(), "customerId", containsString("c1"));
+        .body("entity.orderId", notNullValue(), "entity.customerId", containsString("c1"));
   }
 }

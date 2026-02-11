@@ -1,7 +1,7 @@
 package org.acme.order.resource;
 
-import org.acme.support.AppError.ErrorResponse;
 import org.acme.support.AppError.ValidationError;
+import org.acme.support.AppResponse;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -30,7 +30,7 @@ public final class ConstraintViolationExceptionMapper
         e.getConstraintViolations().stream()
             .map(v -> ValidationError.from(v.getPropertyPath().toString(), v.getMessage()))
             .toList();
-    var response = ErrorResponse.fromErrors("Validation failed", errors);
+    var response = AppResponse.fromErrors("Validation failed", errors);
     var jsonObj = buildJson(response);
     return Response.status(Response.Status.BAD_REQUEST)
         .entity(jsonObj)
@@ -38,7 +38,7 @@ public final class ConstraintViolationExceptionMapper
         .build();
   }
 
-  private ObjectNode buildJson(ErrorResponse error) {
+  private ObjectNode buildJson(AppResponse error) {
     ObjectNode root =
         mapper
             .createObjectNode()

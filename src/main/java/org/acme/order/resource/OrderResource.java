@@ -4,8 +4,8 @@ import org.acme.order.api.CreateOrderRequest;
 import org.acme.order.domain.Order;
 import org.acme.order.service.OrderService;
 import org.acme.support.AppError;
-import org.acme.support.AppError.ErrorResponse;
 import org.acme.support.AppError.NotFoundError;
+import org.acme.support.AppResponse;
 import org.acme.support.Result;
 
 import jakarta.inject.Inject;
@@ -26,10 +26,6 @@ public class OrderResource {
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public Response createOrder(@Valid CreateOrderRequest request) {
-    Object o = null;
-    if (o instanceof String s) {
-      s.toLowerCase();
-    }
     Result<Order, AppError> serviceResult = service.create(request);
     Response response =
         serviceResult.fold(
@@ -37,14 +33,14 @@ public class OrderResource {
                 switch (error) {
                   case NotFoundError e ->
                       Response.status(Response.Status.NOT_FOUND)
-                          .entity(ErrorResponse.fromError(e))
+                          .entity(AppResponse.fromError(e))
                           .build();
                   case AppError e ->
                       Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                          .entity(ErrorResponse.fromError("Internal server error", e))
+                          .entity(AppResponse.fromError("Internal server error", e))
                           .build();
                 },
-            order -> Response.ok(order).build());
+            order -> Response.ok(AppResponse.fromMessage("Order created", order)).build());
     return response;
   }
 }
