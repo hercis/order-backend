@@ -1,14 +1,26 @@
 version = 0.1
 
-[default.deploy.parameters]
-stack_name = "order-dev"
-resolve_s3 = true
-s3_prefix = "order-dev"
-confirm_changeset = true
-capabilities = "CAPABILITY_IAM"
-disable_rollback = true
-image_repositories = []
-parameter_overrides = "Stage=\"prod\""
-
 [default.global.parameters]
 region = "mx-central-1"
+
+[dev.deploy.parameters]
+stack_name = "orderapi-dev"
+resolve_s3 = true
+s3_prefix = "orderapi-dev"
+confirm_changeset = false
+capabilities = "CAPABILITY_IAM"
+image_repositories = []
+parameter_overrides = "Stage=dev IncludeLocalhost=true FrontendBaseUrl=https://hercis-orderui-dev.s3.mx-central-1.amazonaws.com FrontendCallbackPath=/ FrontendLogoutPath=/ LocalhostCallbackPath=/ LocalhostLogoutPath=/"
+
+override_lambda_rollback = true
+
+[prd.deploy.parameters]
+stack_name = "orderapi-prd"
+resolve_s3 = true
+s3_prefix = "orderapi-prd"
+confirm_changeset = false
+capabilities = "CAPABILITY_IAM"
+image_repositories = []
+parameter_overrides = "Stage=prd IncludeLocalhost=false FrontendBaseUrl=https://hercis-orderui-prd.s3.mx-central-1.amazonaws.com FrontendCallbackPath=/ FrontendLogoutPath=/"
+
+override_lambda_rollback = true

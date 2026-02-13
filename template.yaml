@@ -4,9 +4,43 @@ Description: Order API using Lambda with API Gateway
 
 Parameters:
   Stage:
-   Type: String
-   Default: prod
-   Description: StageName of API Gateway
+    Type: String
+    Default: prd
+    Description: Stage name of API
+  FrontendBaseUrl:
+    Type: String
+    Default: http://localhost:5173
+    Description: Base URL of the hosted frontend
+  FrontendCallbackPath:
+    Type: String
+    Default: /
+    Description: Path used for Cognito callback
+  FrontendLogoutPath:
+    Type: String
+    Default: /
+    Description: Path used after logout
+  IncludeLocalhost:
+    Type: String
+    AllowedValues:
+      - true
+      - false
+    Default: false
+    Description: Whether to include localhost callback/logout URLs
+  LocalhostCallbackPath:
+    Type: String
+    Default: /
+    Description: Path used for Cognito callback in localhost
+  LocalhostLogoutPath:
+    Type: String
+    Default: /
+    Description: Path used after logout in localhost
+#  UserPoolArn:
+#    Type: String
+#    Description: ARN of the existing Cognito User Pool
+
+Conditions:
+  IsProd: !Equals [ !Ref Stage, prd ]
+  UseLocalhost: !Equals [ !Ref IncludeLocalhost, true ]
 
 Globals:
   Function:
@@ -58,11 +92,11 @@ Resources:
       SupportedIdentityProviders:
         - COGNITO
       CallbackURLs:
-        - https://hercis-www.s3.mx-central-1.amazonaws.com/order/index.html
-        - http://localhost:5173
+        - !Sub "${FrontendBaseUrl}"
+        - !If [ UseLocalhost, !Sub "http://localhost:5173", !Ref "AWS::NoValue" ]
       LogoutURLs:
-        - https://hercis-www.s3.mx-central-1.amazonaws.com
-        - http://localhost:5173
+        - !Sub "${FrontendBaseUrl}"
+        - !If [ UseLocalhost, !Sub "http://localhost:5173", !Ref "AWS::NoValue" ]
       PreventUserExistenceErrors: ENABLED
 
   CognitoDomain:
@@ -70,7 +104,7 @@ Resources:
     Properties:
       Domain: !Sub "${AWS::StackName}-auth"
       UserPoolId: !Ref CognitoUserPool
-      ManagedLoginVersion: "2"
+      ManagedLoginVersion: 2
 
   OrderApiGateway:
     Type: AWS::Serverless::Api
@@ -115,7 +149,7 @@ Resources:
     Properties:
       TableName: !Sub "${AWS::StackName}-Order"
 #      TableName: Order
-      DeletionProtectionEnabled: true
+#      DeletionProtectionEnabled: true
       AttributeDefinitions:
         - AttributeName: orderId
           AttributeType: S
@@ -129,4 +163,4 @@ Outputs:
     Description: API Gateway endpoint URL for application
     Value: !Sub 'https://${OrderApiGateway}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/'
     Export:
-      Name: OrderBackendApi
+      Name: !Sub "${AWS::StackName}-${Stage}-OrderBackendApi"
