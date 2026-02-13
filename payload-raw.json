@@ -1,0 +1,14 @@
+{
+  "path": "/order",
+  "httpMethod": "GET",
+  "headers": {
+    "Content-Type": "application/json"
+  },
+  "requestContext": {
+    "authorizer": {
+      "claims": {
+        "cognito:username": "test"
+      }
+    }
+  }
+}

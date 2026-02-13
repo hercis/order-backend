@@ -21,13 +21,73 @@ Globals:
       - "*/*"
 
 Resources:
+
+  CognitoUserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: !Sub "${AWS::StackName}-users"
+      AutoVerifiedAttributes:
+        - email
+      UsernameAttributes:
+        - email
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 8
+          RequireLowercase: true
+          RequireUppercase: true
+          RequireNumbers: true
+          RequireSymbols: false
+
+  CognitoUserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: web-client
+      UserPoolId: !Ref CognitoUserPool
+      GenerateSecret: false
+      ExplicitAuthFlows:
+        - ALLOW_USER_PASSWORD_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+        - ALLOW_USER_SRP_AUTH
+      AllowedOAuthFlowsUserPoolClient: true
+      AllowedOAuthFlows:
+        - code
+      AllowedOAuthScopes:
+        - openid
+        - email
+        - profile
+      SupportedIdentityProviders:
+        - COGNITO
+      CallbackURLs:
+        - https://hercis-www.s3.mx-central-1.amazonaws.com/order/index.html
+        - http://localhost:5173
+      LogoutURLs:
+        - https://hercis-www.s3.mx-central-1.amazonaws.com
+        - http://localhost:5173
+      PreventUserExistenceErrors: ENABLED
+
+  CognitoDomain:
+    Type: AWS::Cognito::UserPoolDomain
+    Properties:
+      Domain: !Sub "${AWS::StackName}-auth"
+      UserPoolId: !Ref CognitoUserPool
+      ManagedLoginVersion: "2"
+
   OrderApiGateway:
     Type: AWS::Serverless::Api
     Properties:
       StageName: !Ref Stage
       Name: Order Backend API
+      Auth:
+        DefaultAuthorizer: CognitoAuth
+        Authorizers:
+          CognitoAuth:
+            UserPoolArn: !GetAtt CognitoUserPool.Arn
+      Cors:
+        AllowOrigin: "'*'"
+        AllowHeaders: "'Content-Type,Accept,Authorization,Origin'"
+        AllowMethods: "'GET,POST,PUT,PATCH,DELETE,OPTIONS'"
 
-  PostOrderHandler:
+  OrderBackend:
     Type: AWS::Serverless::Function
     Properties:
       Environment:
@@ -47,6 +107,8 @@ Resources:
             RestApiId: !Ref OrderApiGateway
             Path: /{proxy+}
             Method: ANY
+            Auth:
+              Authorizer: CognitoAuth
 
   OrderTable:
     Type: AWS::DynamoDB::Table
@@ -65,6 +127,6 @@ Resources:
 Outputs:
   OrderBackendApi:
     Description: API Gateway endpoint URL for application
-    Value: !Sub 'https://${OrderApiGateway}.execute-api.${AWS::Region}.amazonaws.com/prod/'
+    Value: !Sub 'https://${OrderApiGateway}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/'
     Export:
       Name: OrderBackendApi
