@@ -10,7 +10,7 @@ s3_prefix = "orderapi-dev"
 confirm_changeset = false
 capabilities = "CAPABILITY_IAM"
 image_repositories = []
-parameter_overrides = "Stage=dev IncludeLocalhost=true FrontendBaseUrl=https://hercis-orderui-dev.s3.mx-central-1.amazonaws.com FrontendCallbackPath=/ FrontendLogoutPath=/ LocalhostCallbackPath=/ LocalhostLogoutPath=/"
+parameter_overrides = "Stage=dev IncludeLocalhost=true FrontendBaseUrl=https://hercis-orderui-dev.s3.mx-central-1.amazonaws.com FrontendCallbackPath=/index.html FrontendLogoutPath=/index.html LocalhostCallbackPath=/ LocalhostLogoutPath=/"
 
 override_lambda_rollback = true
 
@@ -21,6 +21,6 @@ s3_prefix = "orderapi-prd"
 confirm_changeset = false
 capabilities = "CAPABILITY_IAM"
 image_repositories = []
-parameter_overrides = "Stage=prd IncludeLocalhost=false FrontendBaseUrl=https://hercis-orderui-prd.s3.mx-central-1.amazonaws.com FrontendCallbackPath=/ FrontendLogoutPath=/"
+parameter_overrides = "Stage=prd IncludeLocalhost=false FrontendBaseUrl=https://hercis-orderui-prd.s3.mx-central-1.amazonaws.com FrontendCallbackPath=/index.html FrontendLogoutPath=/index.html"
 
 override_lambda_rollback = true

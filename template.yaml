@@ -111,30 +111,27 @@ Resources:
     Properties:
       StageName: !Ref Stage
       Name: !Sub "${AWS::StackName}"
-#      Name: Order Backend API
       Auth:
         DefaultAuthorizer: CognitoAuth
+        AddDefaultAuthorizerToCorsPreflight: false
         Authorizers:
           CognitoAuth:
             UserPoolArn: !GetAtt CognitoUserPool.Arn
-#        AddDefaultAuthorizerToCorsPreflight: false
 #      Cors:
-#        AllowOrigin: "'https://hercis-orderui-dev.s3.mx-central-1.amazonaws.com'"
-#        AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+#        AllowOrigin: "'*'"
+#        AllowHeaders: "'Content-Type,Accept,Authorization,Origin'"
 #        AllowMethods: "'GET,POST,PUT,PATCH,DELETE,OPTIONS'"
-#        AllowCredentials: true
-
 #      GatewayResponses:
 #        DEFAULT_4XX:
 #          ResponseParameters:
 #            Headers:
-#              Access-Control-Allow-Origin: "'https://hercis-orderui-dev.s3.mx-central-1.amazonaws.com'"
+#              Access-Control-Allow-Origin: "'*'"
 #              Access-Control-Allow-Headers: "'Content-Type,Accept,Authorization,Origin'"
 #              Access-Control-Allow-Methods: "'GET,POST,PUT,PATCH,DELETE,OPTIONS'"
 #        DEFAULT_5XX:
 #          ResponseParameters:
 #            Headers:
-#              Access-Control-Allow-Origin: "'https://hercis-orderui-dev.s3.mx-central-1.amazonaws.com'"
+#              Access-Control-Allow-Origin: "'*'"
 #              Access-Control-Allow-Headers: "'Content-Type,Accept,Authorization,Origin'"
 #              Access-Control-Allow-Methods: "'GET,POST,PUT,PATCH,DELETE,OPTIONS'"
 
@@ -152,22 +149,26 @@ Resources:
         - DynamoDBCrudPolicy:
             TableName: !Ref OrderTable
       Events:
+#        OrderResourcePath:
+#          Type: Api
+#          Properties:
+#            RestApiId: !Ref OrderApiGateway
+#            Path: /order
+#            Method: POST
         OrderResourceProxy:
           Type: Api
           Properties:
             RestApiId: !Ref OrderApiGateway
             Path: /{proxy+}
             Method: ANY
-#            Auth:
-#              Authorizer: CognitoAuth
-#        OrderResourcePath:
-#          Type: Api
-#          Properties:
-#            RestApiId: !Ref OrderApiGateway
-#            Path: /order
-#            Method: ANY
-#            Auth:
-#              Authorizer: CognitoAuth
+        PreflightProxy:
+          Type: Api
+          Properties:
+            RestApiId: !Ref OrderApiGateway
+            Path: /{proxy+}
+            Method: OPTIONS
+            Auth:
+              Authorizer: NONE
 
   OrderTable:
     Type: AWS::DynamoDB::Table
