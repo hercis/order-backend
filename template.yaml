@@ -9,7 +9,7 @@ Parameters:
     Description: Stage name of API
   FrontendBaseUrl:
     Type: String
-    Default: http://localhost:5173
+    Default: /
     Description: Base URL of the hosted frontend
   FrontendCallbackPath:
     Type: String
@@ -19,28 +19,35 @@ Parameters:
     Type: String
     Default: /
     Description: Path used after logout
-  IncludeLocalhost:
+  LocalhostBaseUrl:
+    Type: String
+    Default: /
+    Description: Base URL of the hosted frontend
+  LocalhostCallbackPath:
+    Type: String
+    Default: /
+    Description: Path used for Cognito callback
+  LocalhostLogoutPath:
+    Type: String
+    Default: /
+    Description: Path used after logout
+  LocalhostOrigin:
+    Type: String
+    Default: http://localhost:5173
+    Description: Localhost origin to include
+  IncludeDevHost:
     Type: String
     AllowedValues:
       - true
       - false
     Default: false
     Description: Whether to include localhost callback/logout URLs
-  LocalhostCallbackPath:
-    Type: String
-    Default: /
-    Description: Path used for Cognito callback in localhost
-  LocalhostLogoutPath:
-    Type: String
-    Default: /
-    Description: Path used after logout in localhost
 #  UserPoolArn:
 #    Type: String
 #    Description: ARN of the existing Cognito User Pool
 
 Conditions:
-  IsProd: !Equals [ !Ref Stage, prd ]
-  UseLocalhost: !Equals [ !Ref IncludeLocalhost, true ]
+  UseDevHost: !Equals [ !Ref IncludeDevHost, true ]
 
 Globals:
   Function:
@@ -93,10 +100,10 @@ Resources:
         - COGNITO
       CallbackURLs:
         - !Sub "${FrontendBaseUrl}${FrontendCallbackPath}"
-        - !If [ UseLocalhost, !Sub "http://localhost:5173", !Ref "AWS::NoValue" ]
+        - !If [ UseDevHost, !Sub "${LocalhostBaseUrl}${LocalhostCallbackPath}", !Ref "AWS::NoValue" ]
       LogoutURLs:
         - !Sub "${FrontendBaseUrl}${FrontendLogoutPath}"
-        - !If [ UseLocalhost, !Sub "http://localhost:5173", !Ref "AWS::NoValue" ]
+        - !If [ UseDevHost, !Sub "${LocalhostBaseUrl}${LocalhostLogoutPath}", !Ref "AWS::NoValue" ]
       PreventUserExistenceErrors: ENABLED
 
   CognitoDomain:
@@ -140,7 +147,10 @@ Resources:
     Properties:
       Environment:
         Variables:
-          QUARKUS_LAMBDA_HANDLER: createOrder
+          QUARKUS_HTTP_CORS_ORIGINS: !If 
+            - UseDevHost
+            - !Sub "${FrontendBaseUrl},${LocalhostOrigin}"
+            - !Ref "AWS::NoValue"
           ORDER_TABLE_NAME: !Ref OrderTable
       MemorySize: 256
       Timeout: 15
