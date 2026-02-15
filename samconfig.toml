@@ -18,7 +18,7 @@ override_lambda_rollback = true
 stack_name = "orderapi-prd"
 resolve_s3 = true
 s3_prefix = "orderapi-prd"
-confirm_changeset = false
+confirm_changeset = true
 capabilities = "CAPABILITY_IAM"
 image_repositories = []
 parameter_overrides = "Stage=prd FrontendBaseUrl=https://hercis-orderui-prd.s3.mx-central-1.amazonaws.com FrontendCallbackPath=/index.html FrontendLogoutPath=/index.html"
