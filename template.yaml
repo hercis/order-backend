@@ -100,10 +100,10 @@ Resources:
         - COGNITO
       CallbackURLs:
         - !Sub "${FrontendBaseUrl}${FrontendCallbackPath}"
-        - !If [ UseDevHost, !Sub "${LocalhostBaseUrl}${LocalhostCallbackPath}", !Ref "AWS::NoValue" ]
+        - !If [ UseDevHost, !Sub "${LocalhostBaseUrl}", !Ref "AWS::NoValue" ]
       LogoutURLs:
         - !Sub "${FrontendBaseUrl}${FrontendLogoutPath}"
-        - !If [ UseDevHost, !Sub "${LocalhostBaseUrl}${LocalhostLogoutPath}", !Ref "AWS::NoValue" ]
+        - !If [ UseDevHost, !Sub "${LocalhostBaseUrl}", !Ref "AWS::NoValue" ]
       PreventUserExistenceErrors: ENABLED
 
   CognitoDomain:
