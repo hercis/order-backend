@@ -16,7 +16,7 @@ import jakarta.inject.Inject;
 @ApplicationScoped
 public class OrderService {
 
-  @Inject OrderRepository repository;
+  @Inject OrderRepository orderRepository;
 
   @Inject CustomerRepository customerRepository;
 
@@ -27,11 +27,11 @@ public class OrderService {
             .findById(customerId)
             .<Result<Customer, AppError>>map(Result::success)
             .orElseGet(
-                () -> Result.failure(NotFoundError.fromId("customer.id", "Customer", customerId)))
+                () -> Result.failure(NotFoundError.of("customer.id", "Customer", customerId)))
             .map(
                 customer -> {
                   Order order = OrderMapper.toDomain(request);
-                  repository.save(order);
+                  orderRepository.save(order);
                   return order;
                 });
     return result;
